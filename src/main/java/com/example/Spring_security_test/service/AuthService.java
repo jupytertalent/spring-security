@@ -13,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,7 +43,8 @@ public class AuthService {
 
     public ResponseEntity<String> authenticate(Login login) {
         try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPassword()));
+            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPassword()));
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (BadCredentialsException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid username or password");
         }
@@ -49,5 +52,17 @@ public class AuthService {
         Optional<Users> userDetails = userRepository.findByEmail(login.getEmail());
         String token = jwtUtils.generateToken(userDetails.get());
         return ResponseEntity.ok(token);
+    }
+
+    public ResponseEntity<Users> update(int id, String role) {
+        Users user = userRepository.findById(id).get();
+        if (role.equals("DEVLOPER")) {
+            user.setRole(ERole.DEVLOPER);
+        }
+        if (role.equals("ADMIN")) {
+            user.setRole(ERole.ADMIN);
+        }
+        user.setRole(ERole.USER);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(user));
     }
 }
