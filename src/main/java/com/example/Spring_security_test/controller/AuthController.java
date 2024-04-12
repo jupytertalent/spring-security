@@ -15,7 +15,7 @@ public class AuthController {
 
     private final AuthService service;
 
-    @GetMapping("test")
+    @GetMapping("/test")
     public String testApi(){
         return "TestApi works.";
     }
@@ -26,7 +26,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody Login login) {
+    public ResponseEntity<?> login(@RequestBody Login login) {
         return service.authenticate(login);
     }
 

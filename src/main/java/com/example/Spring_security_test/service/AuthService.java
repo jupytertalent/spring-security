@@ -6,6 +6,7 @@ import com.example.Spring_security_test.model.Login;
 import com.example.Spring_security_test.model.Register;
 import com.example.Spring_security_test.model.Users;
 import com.example.Spring_security_test.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
