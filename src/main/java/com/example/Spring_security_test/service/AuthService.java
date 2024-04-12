@@ -58,11 +58,11 @@ public class AuthService {
         Users user = userRepository.findById(id).get();
         if (role.equals("DEVLOPER")) {
             user.setRole(ERole.DEVLOPER);
-        }
-        if (role.equals("ADMIN")) {
+        }else if (role.equals("ADMIN")) {
             user.setRole(ERole.ADMIN);
+        }else {
+            user.setRole(ERole.USER);
         }
-        user.setRole(ERole.USER);
         return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(user));
     }
 }
