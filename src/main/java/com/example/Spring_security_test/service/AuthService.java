@@ -6,9 +6,7 @@ import com.example.Spring_security_test.model.Login;
 import com.example.Spring_security_test.model.Register;
 import com.example.Spring_security_test.model.Users;
 import com.example.Spring_security_test.repository.UserRepository;
-import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,8 +23,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class AuthService {
 
-    @Autowired
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtUtils jwtUtils;
@@ -42,7 +39,7 @@ public class AuthService {
         return "User Added Successfully";
     }
 
-    public ResponseEntity<String> authenticate(Login login) {
+    public ResponseEntity<?> authenticate(Login login) {
         try {
             Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPassword()));
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -51,19 +48,27 @@ public class AuthService {
         }
 
         Optional<Users> userDetails = userRepository.findByEmail(login.getEmail());
-        String token = jwtUtils.generateToken(userDetails.get());
-        return ResponseEntity.ok(token);
+        if (userDetails.isPresent()) {
+            String token = jwtUtils.generateToken(userDetails.get());
+            return ResponseEntity.ok(token);
+        } else {
+            return ResponseEntity.noContent().build();
+        }
     }
 
     public ResponseEntity<Users> update(int id, String role) {
-        Users user = userRepository.findById(id).get();
-        if (role.equals("DEVLOPER")) {
-            user.setRole(ERole.DEVLOPER);
-        }else if (role.equals("ADMIN")) {
-            user.setRole(ERole.ADMIN);
-        }else {
-            user.setRole(ERole.USER);
+        Optional<Users> user = userRepository.findById(id);
+        if (user.isPresent()) {
+            if (role.equals("DEVELOPER")) {
+                user.get().setRole(ERole.DEVLOPER);
+            } else if (role.equals("ADMIN")) {
+                user.get().setRole(ERole.ADMIN);
+            } else {
+                user.get().setRole(ERole.USER);
+            }
+            return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(user.get()));
+        } else {
+            return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(userRepository.save(user));
     }
 }

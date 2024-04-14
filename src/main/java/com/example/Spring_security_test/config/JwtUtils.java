@@ -6,14 +6,14 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class JwtUtils {
@@ -24,6 +24,22 @@ public class JwtUtils {
         return extractClaim(token).get("email").toString();
     }
 
+    public Collection<? extends GrantedAuthority> extractRole(String token) {
+        Object roleClaim = extractClaim(token).get("role");
+        System.out.println("test2");
+
+        if (roleClaim instanceof List<?>) {
+            @SuppressWarnings("unchecked")
+            List<HashMap<String,String>> roles = (List<HashMap<String,String>>) roleClaim;
+            return roles.stream()
+                    .map(x-> new SimpleGrantedAuthority(x.get("authority")))
+                    .collect(Collectors.toList());
+        } else {
+            return List.of(new SimpleGrantedAuthority((String) roleClaim));
+        }
+    }
+
+
     public String generateToken(Users userDetails) {
         return generateToken(new HashMap<>(), userDetails);
     }
@@ -33,7 +49,7 @@ public class JwtUtils {
             Users userDetails
     ) {
         extraClaims.put("email", userDetails.getEmail());
-        extraClaims.put("role",userDetails.getRole());
+        extraClaims.put("role",userDetails.getAuthorities());
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
