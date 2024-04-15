@@ -30,7 +30,7 @@ public class AuthController {
         return service.authenticate(login);
     }
 
-    @GetMapping("/{id}/{role}")
+    @PutMapping("/{id}/{role}")
     public ResponseEntity<Users> updateRole(@PathVariable int id, @PathVariable String role){
         return service.update(id, role);
     }
